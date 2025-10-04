@@ -280,9 +280,9 @@ def train_one_gene_and_save_weights(X, y, gene):
     ytr, yval = y[idx_train], y[idx_val]
 
     Xtr = torch.tensor(Xtr, dtype=torch.float32).unsqueeze(1).to(device)
-    ytr = torch.tensor(ytr, dtype=torch.float32).unsqueeze(1).to(device)
+    ytr = torch.tensor(ytr, dtype=torch.float32).to(device) # FIX: Removed .unsqueeze(1)
     Xval = torch.tensor(Xval, dtype=torch.float32).unsqueeze(1).to(device)
-    yval = torch.tensor(yval, dtype=torch.float32).unsqueeze(1).to(device)
+    yval = torch.tensor(yval, dtype=torch.float32).to(device) # FIX: Removed .unsqueeze(1)
 
     input_size = X.shape[1]
     model = AdaptiveRegressionCNN(input_size=input_size).to(device)
@@ -678,3 +678,4 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\nAn unexpected error occurred: {e}")
         sys.exit(1)
+
