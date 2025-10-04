@@ -39,8 +39,8 @@ LONG_OUT_CSV = "m_arrays_for_edit.csv"
 
 # --- Model & Training Parameters ---
 WINDOW_SIZE = 10_000_000
-EPOCHS = 700
-PATIENCE = 90
+EPOCHS = 100      # MODIFIED: Reduced from 700 for faster testing
+PATIENCE = 15     # MODIFIED: Reduced from 90 for faster testing
 LR = 1e-3
 VAL_FRAC = 0.2
 SEED = 42
@@ -535,6 +535,16 @@ def _predict_tensor(model: nn.Module, x_arr_1d: np.ndarray, device: str) -> floa
         y = model(x).cpu().numpy().reshape(-1)[0]
     return float(y)
 
+def vector_from_long(df_long: pd.DataFrame, gene: str, sample: str, input_probes: List[str], fill_missing: float = 0.0) -> Tuple[np.ndarray, pd.DataFrame]:
+    gene_u = gene.upper()
+    sub = df_long[(df_long["gene"].str.upper() == gene_u) & (df_long["sample"] == sample)]
+    if sub.empty:
+        raise ValueError(f"No rows for {gene_u} / sample {sample} in long data.")
+    sub = sub.drop_duplicates("probe_id").copy()
+    m_by_probe = dict(zip(sub["probe_id"].astype(str), sub["m_value"]))
+    x = np.array([m_by_probe.get(pid, fill_missing) for pid in input_probes], dtype=np.float32)
+    return x, sub
+
 def run_predictions_for_gene(gene: str):
     print(f"\n--- Running Predictions and Analysis for {gene} ---")
     
@@ -678,4 +688,3 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\nAn unexpected error occurred: {e}")
         sys.exit(1)
-
